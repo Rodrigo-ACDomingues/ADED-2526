@@ -387,6 +387,76 @@ def plot_total_time_vs_tokens(df, outdir):
     plt.savefig(os.path.join(outdir, "total_time_vs_tokens.png"))
     plt.clf()
 
+def plot_tpot_vs_threads(df, outdir):
+    grouped = df.groupby(
+        ["workers", "threads", "prompt_size"]
+    ).mean(numeric_only=True).reset_index()
+
+    sizes = ["S", "M", "L"]
+
+    for w in sorted(grouped["workers"].unique()):
+        subset_w = grouped[grouped["workers"] == w]
+
+        for i, size in enumerate(sizes):
+            s = subset_w[subset_w["prompt_size"] == size]
+
+            if s.empty:
+                continue
+
+            color = WORKER_COLORS[w][i]
+
+            plt.plot(
+                s["threads"],
+                s["tpot_ms"],
+                marker='o',
+                color=color,
+                label=f"W={w} | {size}"
+            )
+
+    plt.xlabel("Threads")
+    plt.ylabel("TPOT (ms/token)")
+    plt.title("TPOT vs Threads")
+
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(outdir, "tpot_vs_threads.png"),
+        bbox_inches="tight"
+    )
+    plt.clf()
+
+def plot_tpot_vs_prompt(df, outdir):
+    import os
+    import matplotlib.pyplot as plt
+
+    size_map = {"S": 0, "M": 1, "L": 2}
+
+    x = df["prompt_size"].map(size_map)
+
+    plt.scatter(
+        x,
+        df["tpot_ms"],
+        alpha=0.7
+    )
+
+    plt.xticks([0, 1, 2], ["S", "M", "L"])
+
+    plt.xlabel("Prompt Size")
+    plt.ylabel("TPOT (ms/token)")
+    plt.title("TPOT vs Prompt Size")
+
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    plt.savefig(
+        os.path.join(outdir, "tpot_vs_prompt.png"),
+        bbox_inches="tight"
+    )
+
+    plt.clf()
 
 # ----------------------------
 # 6. Summary Table (WITH S/M/L)
@@ -462,6 +532,8 @@ def main():
     plot_ttft_vs_threads(df, args.outdir)
     plot_ttft_vs_prompt(df, args.outdir)
     plot_total_time_vs_tokens(df, args.outdir)
+    plot_tpot_vs_threads(df, args.outdir)
+    plot_tpot_vs_prompt(df, args.outdir)
 
     # Summary table (com S/M/L)
     build_summary_table(df, args.outdir)
