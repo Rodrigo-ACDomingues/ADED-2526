@@ -7,7 +7,7 @@ como argumento as variáveis de NUM_WORKERS= e CPU_THREADS_PER_WORKER=, foi reco
 de cada um) juntamente com os valores indicados no ficheiro de head.err, com estes dados é populado varios .txt files para cada uma
 das configurações do modelo.
 
-Os modelos usados foram o meta-llama providenciado durante a aula, o TinyLlama accesivél neste endereço do hugging face: https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF, e por fim o Gemma2 accessivél neste endereço: https://huggingface.co/BafS/gemma-2-2b-it-Q4_K_M-GGUF
+Os modelos usados foram o meta-llama providenciado durante a aula, o TinyLlama accesível neste endereço do hugging face: https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF, e por fim o Gemma2 accessível neste endereço: https://huggingface.co/BafS/gemma-2-2b-it-Q4_K_M-GGUF
 
 Para executar o script que compila e faz o plot dos dados segundo os vários gráficos basta correr o seguinte comando na consola no local
 onde se encontra o script (neste caso está dentro de ADED_PROJ):
