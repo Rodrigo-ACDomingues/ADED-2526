@@ -192,6 +192,17 @@ def debug_ttft_order(df):
 # ----------------------------
 # 6. Plots
 # ----------------------------
+def print_plot_data(title, x_values, y_values, config_label, x_name="X", y_name="Y"):
+    print(f"\n{'='*60}")
+    print(f"{title}")
+    print(f"Configuration: {config_label}")
+    print(f"{'-'*60}")
+
+    for x, y in zip(x_values, y_values):
+        print(f"{x_name}={x} | {y_name}={y:.4f}")
+
+    print(f"{'='*60}\n")
+
 def plot_decode_throughput_vs_threads(df, outdir):
     for w in sorted(df["workers"].unique()):
         subset = df[df["workers"] == w]
@@ -204,6 +215,15 @@ def plot_decode_throughput_vs_threads(df, outdir):
             s = grouped[grouped["prompt_size"] == size]
 
             color = WORKER_COLORS[w][i]
+
+            print_plot_data(
+                title="Decode Throughput vs Threads",
+                x_values=s["threads"],
+                y_values=s["throughput_decode"],
+                config_label=f"W={w} | Prompt={size}",
+                x_name="Threads",
+                y_name="Decode Throughput"
+            )
 
             plt.plot(
                 s["threads"],
@@ -236,6 +256,15 @@ def plot_prefill_throughput_vs_threads(df, outdir):
             s = grouped[grouped["prompt_size"] == size]
 
             color = WORKER_COLORS[w][i]
+
+            print_plot_data(
+                title="Prefill Throughput vs Threads",
+                x_values=s["threads"],
+                y_values=s["throughput_prefill"],
+                config_label=f"W={w} | Prompt={size}",
+                x_name="Threads",
+                y_name="Prefill Throughput"
+            )
 
             plt.plot(
                 s["threads"],
@@ -274,6 +303,15 @@ def plot_prefill_decode_ratio_vs_threads(df, outdir):
 
             color = WORKER_COLORS[w][i]
 
+            print_plot_data(
+                title="Prefill/Decode Throughput Ratio vs Threads",
+                x_values=s["threads"],
+                y_values=s["prefill_decode_ratio"],
+                config_label=f"W={w} | Prompt={size}",
+                x_name="Threads",
+                y_name="Prefill/Decode Ratio"
+            )
+
             plt.plot(
                 s["threads"],
                 s["prefill_decode_ratio"],
@@ -293,7 +331,7 @@ def plot_prefill_decode_ratio_vs_threads(df, outdir):
     plt.savefig(os.path.join(outdir, "prefill_decode_ratio_vs_threads.png"), bbox_inches="tight")
     plt.clf()
 
-def plot_ttft_vs_threads(df, outdir):
+""" def plot_ttft_vs_threads(df, outdir):
     import os
     import matplotlib.pyplot as plt
 
@@ -312,6 +350,15 @@ def plot_ttft_vs_threads(df, outdir):
             s = subset_size[subset_size["workers"] == w]
 
             color = WORKER_COLORS[w][sizes.index(size)]
+
+            print_plot_data(
+                title=f"TTFT vs Threads ({size})",
+                x_values=s["threads"],
+                y_values=s["ttft_ms"],
+                config_label=f"W={w}",
+                x_name="Threads",
+                y_name="TTFT (ms)"
+            )
 
             plt.plot(
                 s["threads"],
@@ -336,6 +383,58 @@ def plot_ttft_vs_threads(df, outdir):
         )
 
         plt.clf()
+ """
+
+def plot_ttft_vs_threads(df, outdir):
+    grouped = df.groupby(
+        ["workers", "threads", "prompt_size"]
+    ).mean(numeric_only=True).reset_index()
+
+    sizes = ["S", "M", "L"]
+
+    for w in sorted(grouped["workers"].unique()):
+        subset_w = grouped[grouped["workers"] == w]
+
+        for i, size in enumerate(sizes):
+            s = subset_w[subset_w["prompt_size"] == size]
+
+            if s.empty:
+                continue
+
+            color = WORKER_COLORS[w][i]
+
+            print_plot_data(
+                title="TTFT vs Threads",
+                x_values=s["threads"],
+                y_values=s["ttft_ms"],
+                config_label=f"W={w} | {size}",
+                x_name="Threads",
+                y_name="TTFT (ms)"
+            )
+
+            plt.plot(
+                s["threads"],
+                s["ttft_ms"],
+                marker='o',
+                color=color,
+                label=f"W={w} | {size}"
+            )
+
+    plt.xlabel("Threads")
+    plt.ylabel("TTFT (ms)")
+    plt.title("TTFT vs Threads")
+
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    plt.savefig(
+        os.path.join(outdir, "ttft_vs_threads.png"),
+        bbox_inches="tight"
+    )
+
+    plt.clf()
 
 def plot_ttft_vs_prompt(df, outdir):
     import os
@@ -344,6 +443,15 @@ def plot_ttft_vs_prompt(df, outdir):
     size_map = {"S": 0, "M": 1, "L": 2}
 
     x = df["prompt_size"].map(size_map)
+
+    print_plot_data(
+        title="TTFT vs Prompt Size",
+        x_values=df["prompt_size"],
+        y_values=df["ttft_ms"],
+        config_label="All Configurations",
+        x_name="Prompt Size",
+        y_name="TTFT (ms)"
+    )
 
     plt.scatter(
         x,
@@ -370,6 +478,15 @@ def plot_total_time_vs_tokens(df, outdir):
 
     for size in ["S", "M", "L"]:
         subset = df[df["prompt_size"] == size]
+
+        print_plot_data(
+            title="Total Time vs Total Tokens",
+            x_values=subset["total_tokens"],
+            y_values=subset["total_time_ms"],
+            config_label=f"Prompt={size}",
+            x_name="Total Tokens",
+            y_name="Total Time (ms)"
+        )
 
         plt.scatter(
             subset["total_tokens"],
@@ -405,6 +522,15 @@ def plot_tpot_vs_threads(df, outdir):
 
             color = WORKER_COLORS[w][i]
 
+            print_plot_data(
+                title="TPOT vs Threads",
+                x_values=s["threads"],
+                y_values=s["tpot_ms"],
+                config_label=f"W={w} | {size}",
+                x_name="Threads",
+                y_name="TPOT (ms/token)"
+            )
+
             plt.plot(
                 s["threads"],
                 s["tpot_ms"],
@@ -434,6 +560,15 @@ def plot_tpot_vs_prompt(df, outdir):
     size_map = {"S": 0, "M": 1, "L": 2}
 
     x = df["prompt_size"].map(size_map)
+
+    print_plot_data(
+        title="TPOT vs Prompt Size",
+        x_values=df["prompt_size"],
+        y_values=df["tpot_ms"],
+        config_label="All Configurations",
+        x_name="Prompt Size",
+        y_name="TPOT (ms/token)"
+    )
 
     plt.scatter(
         x,
